@@ -1,7 +1,62 @@
 # voip-call-bridge
 
 ## Description
-A comprehensive VoIP call bridging solution supporting multiple providers (Telnyx, Sinch, Infobip). Features TypeScript client libraries, Node.js REST API, and React web interface with real-time call management and WebRTC headset support.
+A comprehensive VoIP call bridging solution using Telnyx. Features TypeScript client libraries, Node.js REST API, and React web interface with real-time call management and WebRTC headset support.
+
+## Quick Start
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Environment Setup
+```bash
+# Copy the example environment file
+cp env.example .env
+
+# Edit .env with your credentials
+nano .env
+```
+
+Required environment variables:
+```env
+TELNYX_API_KEY=your_api_key_here
+TELNYX_CONNECTION_ID=your_connection_id_here
+```
+
+### 3. Run the Application
+```bash
+# Run both server and client
+npm run dev
+
+# Or run separately:
+# Terminal 1 - Server (port 3001)
+npm run dev:server
+
+# Terminal 2 - Client (port 3000)
+npm run dev:client
+```
+
+### 4. Access the Application
+- **Web UI**: http://localhost:3000
+- **API Health Check**: http://localhost:3001/health
+- **API Base**: http://localhost:3001/api
+
+### 5. Configure Webhooks
+For local development, use ngrok:
+```bash
+# Install ngrok
+npm install -g ngrok
+
+# Expose your local server
+ngrok http 3001
+
+# Use the ngrok URL in Telnyx webhook settings
+```
+
+### Demo Mode
+If Telnyx credentials are not configured, the application runs in demo mode, simulating the call flow for testing purposes.
 
 ## Challenge
 Pick one of the following VoIP providers  
