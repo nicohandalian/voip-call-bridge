@@ -8,9 +8,11 @@
   min-height: 100vh;
   background: var(--bg-primary);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
   padding: var(--spacing-lg);
   padding-top: 140px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .call-bridge::before {
@@ -90,6 +92,8 @@
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-glass);
   animation: fadeInUp 0.6s ease-out;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .controls-row {
@@ -316,6 +320,8 @@
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-glass);
   animation: fadeInUp 0.6s ease-out 0.2s both;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Call Status Component */
@@ -598,26 +604,42 @@
 
 
 
-/* Mobile Responsive */
+/* Tablet Responsive */
 @media (max-width: 768px) {
   .call-bridge {
     padding: var(--spacing-md);
     padding-top: 120px;
   }
   
+  .dashboard-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
   
+  .header-title h1 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .header-subtitle {
+    font-size: var(--font-size-sm);
+  }
   
   .controls-row {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: var(--spacing-lg);
   }
   
   .controls-provider {
     order: 1;
+    flex: none;
   }
   
   .controls-main {
     order: 2;
+    flex: none;
+  }
+  
+  .controls-separator {
+    display: none;
   }
   
   .form-row {
@@ -696,28 +718,292 @@
   }
 }
 
+/* Mobile Phone Responsive */
 @media (max-width: 480px) {
   .call-bridge {
     padding: var(--spacing-sm);
     padding-top: 100px;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
   
+  .dashboard-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .header-title h1 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .header-subtitle {
+    font-size: var(--font-size-xs);
+  }
+  
+  .dashboard-section {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .section-header h2 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .section-header p {
+    font-size: var(--font-size-sm);
+  }
   
   .call-controls,
   .call-status-section {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+  }
+  
+  .controls-provider {
+    width: 100%;
+    flex: none;
+  }
+  
+  .controls-main {
+    width: 100%;
+    flex: none;
+  }
+  
+  .controls-separator {
+    display: none;
+  }
+  
+  .form-row {
+    gap: var(--spacing-sm);
+  }
+  
+  .form-group {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .form-group label {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .form-group input {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+    height: 44px;
+  }
+  
+  .toggle-container {
+    gap: var(--spacing-sm);
   }
   
   .toggle-option {
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 48px;
   }
   
   .toggle-icon {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
   
   .toggle-text {
+    font-size: var(--font-size-sm);
+  }
+  
+  .toggle-desc {
+    font-size: var(--font-size-xs);
+  }
+  
+  .button-group {
+    gap: var(--spacing-sm);
+  }
+  
+  .primary-btn,
+  .danger-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-base);
+    min-height: 48px;
+  }
+  
+  .provider-options {
+    gap: var(--spacing-sm);
+  }
+  
+  .provider-option {
+    padding: var(--spacing-sm);
+    min-height: 60px;
+  }
+  
+  .provider-icon img {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .provider-name {
+    font-size: var(--font-size-xs);
+  }
+  
+  .demo-badge {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+  
+  .call-status-minimal {
+    padding: var(--spacing-sm);
+  }
+  
+  .status-header-minimal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .status-indicator {
+    gap: var(--spacing-xs);
+  }
+  
+  .status-text-minimal {
+    font-size: var(--font-size-sm);
+  }
+  
+  .call-timer-minimal {
+    font-size: var(--font-size-xs);
+  }
+  
+  .call-numbers-minimal {
+    gap: var(--spacing-xs);
+  }
+  
+  .phone-minimal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .phone-label-minimal {
+    font-size: var(--font-size-xs);
+  }
+  
+  .phone-value-minimal {
+    font-size: var(--font-size-sm);
+    word-break: break-all;
+  }
+  
+  .error-minimal {
+    padding: var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Extra Small Phones */
+@media (max-width: 360px) {
+  .call-bridge {
+    padding: var(--spacing-xs);
+    padding-top: 90px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  .dashboard-header {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .header-title h1 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .header-subtitle {
+    font-size: 10px;
+  }
+  
+  .dashboard-section {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .section-header h2 {
+    font-size: var(--font-size-base);
+  }
+  
+  .section-header p {
+    font-size: var(--font-size-xs);
+  }
+  
+  .call-controls,
+  .call-status-section {
+    padding: var(--spacing-sm);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    width: 100%;
+  }
+  
+  .controls-provider {
+    width: 100%;
+    flex: none;
+  }
+  
+  .controls-main {
+    width: 100%;
+    flex: none;
+  }
+  
+  .controls-separator {
+    display: none;
+  }
+  
+  .form-group input {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    height: 40px;
+  }
+  
+  .toggle-option {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-height: 44px;
+  }
+  
+  .toggle-icon {
+    font-size: 1rem;
+  }
+  
+  .toggle-text {
+    font-size: var(--font-size-xs);
+  }
+  
+  .primary-btn,
+  .danger-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    min-height: 44px;
+  }
+  
+  .provider-option {
+    padding: var(--spacing-xs);
+    min-height: 50px;
+  }
+  
+  .provider-icon img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .provider-name {
+    font-size: 10px;
   }
 }
 

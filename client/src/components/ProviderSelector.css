@@ -95,7 +95,7 @@
 
 /* Removed old provider status styles */
 
-/* Mobile Responsive */
+/* Tablet Responsive */
 @media (max-width: 768px) {
   .provider-options {
     gap: var(--spacing-xs);
@@ -113,8 +113,84 @@
   .provider-name {
     font-size: var(--font-size-sm);
   }
+}
+
+/* Mobile Phone Responsive */
+@media (max-width: 480px) {
+  .provider-selector {
+    padding: var(--spacing-sm);
+    width: 100%;
+    box-sizing: border-box;
+  }
   
-  .provider-status {
+  .provider-header p {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .provider-options {
+    gap: var(--spacing-xs);
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .provider-option {
+    padding: var(--spacing-sm);
+    min-height: 60px;
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  
+  .provider-icon img {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .provider-name {
+    font-size: var(--font-size-xs);
+    word-wrap: break-word;
+  }
+  
+  .demo-badge {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+}
+
+/* Extra Small Phones */
+@media (max-width: 360px) {
+  .provider-selector {
+    padding: var(--spacing-xs);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .provider-options {
+    gap: var(--spacing-xs);
+    width: 100%;
+  }
+  
+  .provider-option {
+    padding: var(--spacing-xs);
+    min-height: 50px;
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  
+  .provider-icon img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .provider-name {
     font-size: 10px;
+    word-wrap: break-word;
+  }
+  
+  .demo-badge {
+    font-size: 7px;
+    padding: 1px 3px;
   }
 }

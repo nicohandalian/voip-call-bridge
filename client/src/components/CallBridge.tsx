@@ -135,13 +135,12 @@ const CallBridge: React.FC = () => {
     try {
       await apiService.endCall(activeCallId);
       setActiveCallId(null);
-      showInfo('Call Ended', 'The call has been terminated', 2000);
     } catch (err) {
       showError('Failed to End Call', err instanceof Error ? err.message : 'Failed to end call', 5000);
     } finally {
       setIsLoading(false);
     }
-  }, [activeCallId, showError, showInfo]);
+  }, [activeCallId, showError]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
