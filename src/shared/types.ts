@@ -6,6 +6,8 @@ export interface CallStatus {
   error?: string;
   timestamp: Date;
   callStartTime?: Date;
+  callMode?: 'bridge' | 'headset';
+  provider?: string;
 }
 
 export interface CallBridgeConfig {
@@ -17,8 +19,10 @@ export interface CallBridgeConfig {
 export type CallStatusCallback = (status: CallStatus) => void;
 
 export interface CallInitiateRequest {
-  fromPhone: string;
+  fromPhone?: string;
   toPhone: string;
+  provider?: string;
+  callMode?: 'bridge' | 'headset';
 }
 
 export interface CallInitiateResponse {

@@ -21,7 +21,6 @@ export const useSocket = () => {
     });
 
     newSocket.on('connect_error', (error: any) => {
-      console.error('Socket.IO connection error:', error);
       setIsConnected(false);
     });
 

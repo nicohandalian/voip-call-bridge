@@ -1,18 +1,26 @@
 import { TelnyxCallBridge } from '../client/TelnyxCallBridge';
 import { CallStatus } from '../../shared/types';
 import { logger } from '../../shared/logger';
+import { Server as SocketIOServer } from 'socket.io';
 
 export class CallService {
   private telnyxClient: TelnyxCallBridge;
+  private io: SocketIOServer;
 
-  constructor() {
+  constructor(io: SocketIOServer) {
+    this.io = io;
     this.telnyxClient = new TelnyxCallBridge({
       apiKey: process.env.TELNYX_API_KEY || '',
     });
+    
+    this.telnyxClient.setStatusCallback((status: CallStatus) => {
+      this.io.emit('callStatusUpdate', status);
+    });
   }
 
-  async initiateCall(fromPhone: string, toPhone: string): Promise<{ callId: string }> {
-    const callId = await this.telnyxClient.initiateCall(fromPhone, toPhone);
+  async initiateCall(fromPhone: string | undefined, toPhone: string, callMode: 'bridge' | 'headset' = 'bridge', provider: string = 'telnyx'): Promise<{ callId: string }> {
+    const actualFromPhone = fromPhone || '';
+    const callId = await this.telnyxClient.initiateCall(actualFromPhone, toPhone, callMode);
     return { callId };
   }
 

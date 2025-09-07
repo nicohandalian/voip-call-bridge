@@ -1,4 +1,3 @@
-// Centralized logging utility
 import { Logger } from './types';
 
 const isDevelopment = process.env.NODE_ENV === 'development';

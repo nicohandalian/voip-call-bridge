@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { CallStatus } from '../types';
 
-// State interface
 interface AppState {
   calls: CallStatus[];
   activeCallId: string | null;
@@ -10,7 +9,6 @@ interface AppState {
   isConnected: boolean;
 }
 
-// Action types
 type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
@@ -21,7 +19,6 @@ type AppAction =
   | { type: 'CLEAR_CALLS' }
   | { type: 'SET_CALLS'; payload: CallStatus[] };
 
-// Initial state
 const initialState: AppState = {
   calls: [],
   activeCallId: null,
@@ -30,7 +27,6 @@ const initialState: AppState = {
   isConnected: false,
 };
 
-// Reducer
 const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
     case 'SET_LOADING':
@@ -70,13 +66,11 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
   }
 };
 
-// Context
 const AppContext = createContext<{
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
 } | null>(null);
 
-// Provider component
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
@@ -87,7 +81,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   );
 };
 
-// Custom hook to use the context
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {

@@ -1,4 +1,3 @@
-// Re-export shared types for client use
 export type {
   CallStatus,
   CallBridgeConfig,

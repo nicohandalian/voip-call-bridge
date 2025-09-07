@@ -10,8 +10,6 @@ export const useCallTimer = (call: CallStatus | null) => {
       return;
     }
 
-    // Show timer only when calls are bridged - both parties can talk
-    // Timer starts when both calls are connected and bridged
     if (call.status !== 'bridged') {
       setTimeInCall('');
       return;
@@ -19,7 +17,7 @@ export const useCallTimer = (call: CallStatus | null) => {
 
     const updateTimer = () => {
       const now = new Date();
-      const startTime = new Date(call.callStartTime!); // Non-null assertion since we checked above
+      const startTime = new Date(call.callStartTime!);
       const diffMs = now.getTime() - startTime.getTime();
       
       if (diffMs < 0) {
@@ -34,14 +32,12 @@ export const useCallTimer = (call: CallStatus | null) => {
       setTimeInCall(`${minutes}:${seconds.toString().padStart(2, '0')}`);
     };
 
-    // Update immediately
     updateTimer();
 
-    // Update every second
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [call?.callStartTime, call?.status]);
+  }, [call]);
 
   return timeInCall;
 };

@@ -29,7 +29,6 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
       throw error;
     }
   }

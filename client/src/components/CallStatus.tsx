@@ -6,6 +6,7 @@ interface CallStatusDisplayProps {
   timeInCall: string;
   getStatusColor: (status: CallStatusType['status']) => string;
   getStatusText: (status: CallStatusType['status']) => string;
+  callMode?: 'bridge' | 'headset';
 }
 
 const CallStatusDisplay: React.FC<CallStatusDisplayProps> = ({
@@ -13,51 +14,59 @@ const CallStatusDisplay: React.FC<CallStatusDisplayProps> = ({
   timeInCall,
   getStatusColor,
   getStatusText,
+  callMode = 'bridge',
 }) => {
+
   return (
-    <div className="call-status">
-      <h3>Call Status</h3>
-      <div className="status-info">
+    <div className="call-status-minimal">
+      <div className="status-header-minimal">
         <div className="status-indicator">
           <div
-            className="status-dot"
+            className="status-dot-minimal"
             style={{ backgroundColor: getStatusColor(call.status) }}
           />
-          <span>{getStatusText(call.status)}</span>
+          <span className="status-text-minimal">{getStatusText(call.status)}</span>
         </div>
-        <div className="call-details">
-          <div><strong>From:</strong> {call.fromPhone}</div>
-          <div><strong>To:</strong> {call.toPhone}</div>
-          <div><strong>Call ID:</strong> {call.callId}</div>
-          <div><strong>Started:</strong> {new Date(call.timestamp).toLocaleTimeString()}</div>
-          {call.status === 'answered' && (
-            <div className="call-phase">
-              <strong>Phase:</strong> First call answered, dialing second number...
-            </div>
-          )}
-          {call.status === 'ringing' && (
-            <div className="call-phase">
-              <strong>Phase:</strong> Calling second number...
-            </div>
-          )}
-          {call.status === 'bridged' && (
-            <div className="call-phase">
-              <strong>Phase:</strong> Both calls connected and bridged
-            </div>
-          )}
-          {timeInCall && (
-            <div className="time-in-call">
-              <strong>Time in call:</strong> 
-              <span className="timer">{timeInCall}</span>
-            </div>
-          )}
-        </div>
-        {call.error && (
-          <div className="error-details">
-            <strong>Error:</strong> {call.error}
-          </div>
+        {timeInCall && (
+          <div className="call-timer-minimal">{timeInCall}</div>
         )}
       </div>
+
+      <div className="call-numbers-minimal">
+        {(() => {
+          const mode = call.callMode || callMode;
+          
+          if (mode === 'headset') {
+            return (
+              <div className="phone-minimal">
+                <span className="phone-label-minimal">Calling</span>
+                <span className="phone-value-minimal">{call.toPhone}</span>
+              </div>
+            );
+          } else {
+            return (
+              <>
+                <div className="phone-minimal">
+                  <span className="phone-label-minimal">From</span>
+                  <span className="phone-value-minimal">{call.fromPhone}</span>
+                </div>
+                <span className="arrow-minimal">→</span>
+                <div className="phone-minimal">
+                  <span className="phone-label-minimal">To</span>
+                  <span className="phone-value-minimal">{call.toPhone}</span>
+                </div>
+              </>
+            );
+          }
+        })()}
+      </div>
+
+      {call.error && (
+        <div className="error-minimal">
+          <span className="error-icon-minimal">⚠️</span>
+          <span className="error-text-minimal">{call.error}</span>
+        </div>
+      )}
     </div>
   );
 };

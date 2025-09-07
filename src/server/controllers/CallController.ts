@@ -1,18 +1,22 @@
 import { Request, Response } from 'express';
 import { CallService } from '../services/CallService';
 import { logger } from '../../shared/logger';
+import { Server as SocketIOServer } from 'socket.io';
 
 export class CallController {
   private callService: CallService;
+  private io: SocketIOServer;
 
-  constructor() {
-    this.callService = new CallService();
+  constructor(io: SocketIOServer) {
+    this.io = io;
+    this.callService = new CallService(io);
   }
 
   async initiateCall(req: Request, res: Response): Promise<void> {
     try {
-      const { fromPhone, toPhone } = req.body;
-      const result = await this.callService.initiateCall(fromPhone, toPhone);
+      const { fromPhone, toPhone, callMode = 'bridge', provider = 'telnyx' } = req.body;
+      const result = await this.callService.initiateCall(fromPhone, toPhone, callMode, provider);
+      
       
       res.json({
         success: true,

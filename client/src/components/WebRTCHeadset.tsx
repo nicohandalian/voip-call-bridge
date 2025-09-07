@@ -4,18 +4,21 @@ import { Call } from '@telnyx/webrtc';
 import './WebRTCHeadset.css';
 
 interface WebRTCHeadsetProps {
+  toPhone: string;
+  provider: string;
   onCallStatusChange: (status: string, call?: Call) => void;
   onError: (error: string) => void;
 }
 
 const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
+  toPhone,
+  provider,
   onCallStatusChange,
   onError,
 }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
   const [callStatus, setCallStatus] = useState<string>('disconnected');
-  const [toPhone, setToPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const clientRef = useRef<TelnyxRTC | null>(null);
@@ -24,11 +27,9 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
   useEffect(() => {
     const initializeClient = async () => {
     try {
-      // Note: For WebRTC to work I need a login token from Telnyx
       const loginToken = process.env.REACT_APP_TELNYX_LOGIN_TOKEN || '';
       
       if (!loginToken) {
-        console.log('WebRTC login token not configured. WebRTC headset calling is disabled.');
         setCallStatus('disabled');
         onCallStatusChange('disabled');
         return;
@@ -39,14 +40,12 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       });
 
       client.on('telnyx.ready', () => {
-        console.log('WebRTC client ready');
         setIsConnected(true);
         setCallStatus('ready');
         onCallStatusChange('ready');
       });
 
       client.on('telnyx.error', (error: any) => {
-        console.error('WebRTC client error:', error);
         onError(`WebRTC error: ${error.message || 'Unknown error'}`);
         setCallStatus('error');
         onCallStatusChange('error');
@@ -55,7 +54,6 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       clientRef.current = client;
       await client.connect();
     } catch (error) {
-      console.error('Failed to initialize WebRTC client:', error);
       onError(`Failed to initialize WebRTC client: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
     };
@@ -99,7 +97,6 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       setIsCallActive(true);
 
       (call as any).on('callUpdate', (callState: any) => {
-        console.log('Call state:', callState.state);
         
         switch (callState.state) {
           case 'ringing':
@@ -120,7 +117,6 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       });
 
       (call as any).on('error', (error: any) => {
-        console.error('Call error:', error);
         onError(`Call error: ${error.message || 'Unknown error'}`);
         setCallStatus('error');
         onCallStatusChange('error', call);
@@ -129,7 +125,6 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       });
 
     } catch (error) {
-      console.error('Failed to start call:', error);
       onError(`Failed to start call: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setCallStatus('error');
       onCallStatusChange('error');
@@ -191,49 +186,41 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
 
   return (
     <div className="webrtc-headset">
-      <div className="headset-header">
-        <h3>Headset Calling</h3>
-        <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
-          {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+      <div className="webrtc-info">
+        <div className="call-display">
+          <div className="phone-number">
+            <span className="label">Calling</span>
+            <span className="number">{toPhone}</span>
+          </div>
+          <div className="provider-info">
+            <span className="provider-label">Using {provider.toUpperCase()}</span>
+          </div>
         </div>
       </div>
 
-      <div className="headset-form">
-        <div className="form-group">
-          <label htmlFor="headsetToPhone">Phone Number to Call</label>
-          <input
-            id="headsetToPhone"
-            type="tel"
-            value={toPhone}
-            onChange={(e) => setToPhone(e.target.value)}
-            placeholder="+1234567890"
-            disabled={isLoading || isCallActive || !isConnected || callStatus === 'disabled'}
-            className={!toPhone || validatePhoneNumber(toPhone) ? '' : 'error'}
-          />
-        </div>
-
+      <div className="webrtc-controls">
         <div className="button-group">
           {!isCallActive ? (
             <button
               onClick={handleStartCall}
               disabled={isLoading || !isConnected || !toPhone || callStatus === 'disabled'}
-              className="primary-button"
+              className="primary-btn"
             >
-              {isLoading ? 'Starting Call...' : 'Start Call'}
+              {isLoading ? '🔄 Starting Call...' : '📞 Start WebRTC Call'}
             </button>
           ) : (
             <button
               onClick={handleEndCall}
               disabled={isLoading}
-              className="danger-button"
+              className="danger-btn"
             >
-              End Call
+              📞 End Call
             </button>
           )}
         </div>
       </div>
 
-      <div className="headset-status">
+      <div className="webrtc-status">
         <div className="status-indicator">
           <div
             className="status-dot"
@@ -243,20 +230,20 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
         </div>
         
         {isCallActive && (
-          <div className="call-info">
-            <div><strong>Calling:</strong> {toPhone}</div>
-            <div><strong>From:</strong> {toPhone}</div>
-            <div className="call-instructions">
-              💡 Use your computer's microphone and speakers to talk
-            </div>
+          <div className="call-instructions">
+            <span className="instruction-icon">💡</span>
+            <span className="instruction-text">Use your computer's microphone and speakers to talk</span>
           </div>
         )}
       </div>
 
       {!isConnected && callStatus !== 'disabled' && (
         <div className="connection-help">
-          <h4>Connection Required</h4>
-          <p>Please ensure you have a valid Telnyx login token configured to use WebRTC headset calling.</p>
+          <div className="help-icon">⚠️</div>
+          <div className="help-content">
+            <h4>Connection Required</h4>
+            <p>Please ensure you have a valid {provider.toUpperCase()} login token configured to use WebRTC headset calling.</p>
+          </div>
         </div>
       )}
     </div>

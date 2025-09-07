@@ -1,0 +1,120 @@
+/* Provider Selector Styles */
+.provider-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  height: 100%;
+}
+
+.provider-header {
+  text-align: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.provider-header p {
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  margin: 0;
+}
+
+.provider-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.provider-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  backdrop-filter: blur(10px);
+  text-align: left;
+  width: 100%;
+  position: relative;
+}
+
+.provider-option:hover {
+  background: var(--bg-glass-hover);
+  border-color: var(--border-glass-hover);
+  transform: translateY(-1px);
+}
+
+.provider-option.active {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  border-color: var(--primary-blue);
+  color: var(--text-white);
+  box-shadow: var(--shadow-button);
+  transform: translateY(-2px);
+}
+
+.provider-option.demo-mode {
+  opacity: 0.9;
+}
+
+.provider-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.provider-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.provider-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: inherit;
+}
+
+.demo-badge {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  background: var(--warning-orange);
+  color: var(--text-white);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  z-index: 1;
+}
+
+/* Removed old provider status styles */
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .provider-options {
+    gap: var(--spacing-xs);
+  }
+  
+  .provider-option {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .provider-icon img {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .provider-name {
+    font-size: var(--font-size-sm);
+  }
+  
+  .provider-status {
+    font-size: 10px;
+  }
+}

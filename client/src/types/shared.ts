@@ -1,5 +1,3 @@
-// Shared type definitions for the VoIP Call Bridge application
-
 export interface CallStatus {
   callId: string;
   status: 'initiating' | 'ringing' | 'answered' | 'bridged' | 'ended' | 'error';
@@ -7,7 +5,9 @@ export interface CallStatus {
   toPhone: string;
   error?: string;
   timestamp: Date;
-  callStartTime?: Date; // When the call was first answered
+  callStartTime?: Date;
+  callMode?: 'bridge' | 'headset';
+  provider?: string;
 }
 
 export interface CallBridgeConfig {
@@ -18,10 +18,11 @@ export interface CallBridgeConfig {
 
 export type CallStatusCallback = (status: CallStatus) => void;
 
-// API Request/Response types
 export interface CallInitiateRequest {
-  fromPhone: string;
+  fromPhone?: string;
   toPhone: string;
+  provider?: string;
+  callMode?: 'bridge' | 'headset';
 }
 
 export interface CallInitiateResponse {
@@ -43,7 +44,6 @@ export interface CallsResponse {
   error?: string;
 }
 
-// Utility types
 export type CallStatusType = CallStatus['status'];
 
 export interface Logger {
