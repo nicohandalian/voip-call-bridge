@@ -43,49 +43,103 @@ app.post('/webhooks/telnyx', (req, res) => {
     const event = req.body;
     logger.debug('Received Telnyx webhook event:', JSON.stringify(event, null, 2));
     
+    let internalCallId = event.data.call_control_id; // Default to Telnyx call ID
+    if (event.data.client_state) {
+      try {
+        const clientState = JSON.parse(event.data.client_state);
+        if (clientState.callId) {
+          internalCallId = clientState.callId;
+        }
+      } catch (e) {
+        logger.warn('Failed to parse client state:', e);
+      }
+    }
+    
+    let callMode = 'bridge';
+    if (event.data.client_state) {
+      try {
+        const clientState = JSON.parse(event.data.client_state);
+        if (clientState.headsetMode) {
+          callMode = 'headset';
+        } else if (clientState.bridgeMode) {
+          callMode = 'bridge';
+        }
+      } catch (e) {
+        logger.warn('Failed to parse client state for call mode:', e);
+      }
+    }
+    
     switch (event.event_type) {
       case 'call.initiated':
         logger.info('Call initiated:', event.data.call_control_id);
-        io.emit('callStatusUpdate', {
-          callId: event.data.call_control_id,
+        const initStatus: any = {
+          callId: internalCallId,
           status: 'initiating',
-          fromPhone: event.data.from,
           toPhone: event.data.to,
           timestamp: new Date(),
-        });
+          callMode,
+          provider: 'telnyx',
+        };
+        
+        if (callMode === 'bridge' && event.data.from) {
+          initStatus.fromPhone = event.data.from;
+        }
+        
+        io.emit('callStatusUpdate', initStatus);
         break;
         
       case 'call.answered':
         logger.info('Call answered:', event.data.call_control_id);
-        io.emit('callStatusUpdate', {
-          callId: event.data.call_control_id,
+        const answerStatus: any = {
+          callId: internalCallId,
           status: 'answered',
-          fromPhone: event.data.from,
           toPhone: event.data.to,
           timestamp: new Date(),
-        });
+          callMode,
+          provider: 'telnyx',
+        };
+        
+        if (callMode === 'bridge' && event.data.from) {
+          answerStatus.fromPhone = event.data.from;
+        }
+        
+        io.emit('callStatusUpdate', answerStatus);
         break;
         
       case 'call.hangup':
         logger.info('Call ended:', event.data.call_control_id);
-        io.emit('callStatusUpdate', {
-          callId: event.data.call_control_id,
+        const hangupStatus: any = {
+          callId: internalCallId,
           status: 'ended',
-          fromPhone: event.data.from,
           toPhone: event.data.to,
           timestamp: new Date(),
-        });
+          callMode,
+          provider: 'telnyx',
+        };
+        
+        if (callMode === 'bridge' && event.data.from) {
+          hangupStatus.fromPhone = event.data.from;
+        }
+        
+        io.emit('callStatusUpdate', hangupStatus);
         break;
         
       case 'call.ringing':
         logger.info('Call ringing:', event.data.call_control_id);
-        io.emit('callStatusUpdate', {
-          callId: event.data.call_control_id,
+        const ringingStatus: any = {
+          callId: internalCallId,
           status: 'ringing',
-          fromPhone: event.data.from,
           toPhone: event.data.to,
           timestamp: new Date(),
-        });
+          callMode,
+          provider: 'telnyx',
+        };
+        
+        if (callMode === 'bridge' && event.data.from) {
+          ringingStatus.fromPhone = event.data.from;
+        }
+        
+        io.emit('callStatusUpdate', ringingStatus);
         break;
         
       default:

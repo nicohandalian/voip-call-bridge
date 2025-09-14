@@ -30,8 +30,8 @@ export class ProviderManager {
     return ProviderFactory.getAvailableProviders();
   }
 
-  async initiateCall(fromPhone: string, toPhone: string): Promise<string> {
-    return this.currentProvider.initiateCall(fromPhone, toPhone);
+  async initiateCall(fromPhone: string, toPhone: string, callMode: 'bridge' | 'headset' = 'bridge'): Promise<string> {
+    return this.currentProvider.initiateCall(fromPhone, toPhone, callMode);
   }
 
   async endCall(callId: string): Promise<void> {

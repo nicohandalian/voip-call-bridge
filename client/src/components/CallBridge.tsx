@@ -4,8 +4,10 @@ import { useSocket } from '../hooks/useSocket';
 import { useCallTimer } from '../hooks/useCallTimer';
 import { useToast } from '../hooks/useToast';
 import { validatePhoneNumber, getStatusColor, getStatusText } from '../utils/callUtils';
+import { CallStatus } from '../types';
 import ProviderSelector from './ProviderSelector';
 import CallStatusDisplay from './CallStatus';
+import WebRTCHeadset from './WebRTCHeadset';
 import ToastContainer from './ToastContainer';
 import './CallBridge.css';
 
@@ -25,15 +27,89 @@ const CallBridge: React.FC = () => {
       setFromPhone('');
     }
   };
-  const [webrtcError, setWebrtcError] = useState<string | null>(null);
   const [currentProvider, setCurrentProvider] = useState<string>('telnyx');
+  const [webrtcCalls, setWebrtcCalls] = useState<CallStatus[]>([]);
+  const [demoCall, setDemoCall] = useState<CallStatus | null>(null);
   
-  const { callStatuses } = useSocket();
+  const { callStatuses, isConnected, connectionError } = useSocket();
   const { toasts, removeToast, showSuccess, showError, showInfo } = useToast();
 
-  const currentCall = activeCallId ? callStatuses.find(call => call.callId === activeCallId) : null;
+
+  const allCallStatuses = [...callStatuses, ...webrtcCalls, ...(demoCall ? [demoCall] : [])];
+  const currentCall = activeCallId ? allCallStatuses.find(call => call.callId === activeCallId) : 
+    (allCallStatuses.length > 0 ? allCallStatuses[0] : null);
+  
+  
   const timeInCall = useCallTimer(currentCall || null);
 
+
+  useEffect(() => {
+    if (webrtcCalls.length > 0 && !activeCallId) {
+      const latestCall = webrtcCalls[webrtcCalls.length - 1];
+      setActiveCallId(latestCall.callId);
+    }
+  }, [webrtcCalls, activeCallId]);
+
+  const handleWebRTCStatusChange = useCallback((status: string, call?: any) => {
+    
+
+    const customCall = call as any;
+    
+
+    if (status === 'demo') {
+      const callId = customCall?.callId || 'demo-call-' + Date.now();
+
+
+      const demoCallStatus: CallStatus = {
+        callId: callId,
+        status: 'answered', // Demo calls are treated as answered
+        fromPhone: customCall?.fromPhone || 'WebRTC Headset',
+        toPhone: customCall?.toPhone || toPhone,
+        provider: customCall?.provider || currentProvider,
+        demoMode: true,
+        apiError: 'Using demo mode for WebRTC testing',
+        timestamp: new Date(),
+        callStartTime: new Date()
+      };
+
+      setDemoCall(demoCallStatus);
+      setActiveCallId(callId);
+      
+    } else if (status === 'active' && !customCall?.demoMode) {
+
+      const callId = customCall?.callId || 'webrtc-call-' + Date.now();
+      
+      const webrtcCallStatus: CallStatus = {
+        callId: callId,
+        status: 'answered',
+        fromPhone: customCall?.fromPhone || 'WebRTC Headset',
+        toPhone: customCall?.toPhone || toPhone,
+        provider: customCall?.provider || currentProvider,
+        demoMode: false,
+        timestamp: new Date(),
+        callStartTime: new Date()
+      };
+      
+      
+      setWebrtcCalls(prev => {
+        const existingIndex = prev.findIndex(c => c.callId === callId);
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = webrtcCallStatus;
+          return updated;
+        } else {
+          return [...prev, webrtcCallStatus];
+        }
+      });
+      
+      setActiveCallId(callId);
+      
+    } else if (status === 'ended') {
+      setDemoCall(null);
+      setActiveCallId(null);
+    }
+
+  }, [toPhone, currentProvider]);
 
   const handleProviderChange = (provider: string, configured: boolean) => {
     setCurrentProvider(provider);
@@ -43,32 +119,61 @@ const CallBridge: React.FC = () => {
 
 
   useEffect(() => {
-    if (error || webrtcError) {
+    if (error) {
       const timer = setTimeout(() => {
         setError(null);
-        setWebrtcError(null);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [error, webrtcError]);
+  }, [error]);
+
+  useEffect(() => {
+    if (connectionError) {
+      showError('Connection Error', connectionError, 6000);
+    }
+  }, [connectionError, showError]);
+
+  useEffect(() => {
+    if (isConnected) {
+      showSuccess('Connected', 'Real-time updates enabled', 2000);
+    }
+  }, [isConnected, showSuccess]);
 
 
   useEffect(() => {
     if (currentCall) {
       switch (currentCall.status) {
         case 'answered':
-          showInfo('Call Answered!', 'First call answered, dialing second number...', 3000);
+          if (currentCall.demoMode) {
+            showInfo('Demo Call Answered!', 'Simulated call answered - this is demo mode', 3000);
+          } else {
+            showInfo('Call Answered!', 'First call answered, dialing second number...', 3000);
+          }
           break;
         case 'bridged':
-          showSuccess('Calls Bridged!', 'Both parties can now talk!', 4000);
+          if (currentCall.demoMode) {
+            showSuccess('Demo Calls Bridged!', 'Simulated call bridge - this is demo mode', 4000);
+          } else {
+            showSuccess('Calls Bridged!', 'Both parties can now talk!', 4000);
+          }
           break;
         case 'ended':
-          showInfo('Call Ended', 'The call has been completed', 2000);
+          if (currentCall.demoMode) {
+            showInfo('Demo Call Ended', 'Simulated call completed', 2000);
+          } else {
+            showInfo('Call Ended', 'The call has been completed', 2000);
+          }
           setActiveCallId(null);
           break;
         case 'error':
-          showError('Call Error', currentCall.error || 'An error occurred during the call', 5000);
-          setActiveCallId(null);
+          if (currentCall.demoMode && currentCall.apiError) {
+            showError('API Error - Demo Mode Active', `Telnyx API failed: ${currentCall.apiError}. Using demo mode for testing.`, 8000);
+          } else {
+            showError('Call Error', currentCall.error || 'An error occurred during the call', 5000);
+          }
+          if (!currentCall.demoMode) {
+            setActiveCallId(null);
+          }
           break;
       }
     }
@@ -78,24 +183,34 @@ const CallBridge: React.FC = () => {
   const handleInitiateCall = useCallback(async () => {
     if (callMode === 'bridge') {
       if (!fromPhone || !toPhone) {
-        setError('Please enter both phone numbers');
+        const errorMsg = 'Please enter both phone numbers';
+        setError(errorMsg);
+        showError('Validation Error', errorMsg, 4000);
         return;
       }
       if (!validatePhoneNumber(fromPhone) || !validatePhoneNumber(toPhone)) {
-        setError('Please enter valid phone numbers in international format (e.g., +1234567890)');
+        const errorMsg = 'Please enter valid phone numbers in international format (e.g., +1234567890)';
+        setError(errorMsg);
+        showError('Invalid Phone Numbers', errorMsg, 5000);
         return;
       }
       if (fromPhone === toPhone) {
-        setError('From and To phone numbers cannot be the same');
+        const errorMsg = 'From and To phone numbers cannot be the same';
+        setError(errorMsg);
+        showError('Invalid Configuration', errorMsg, 4000);
         return;
       }
     } else {
       if (!toPhone) {
-        setError('Please enter a phone number to call');
+        const errorMsg = 'Please enter a phone number to call';
+        setError(errorMsg);
+        showError('Validation Error', errorMsg, 4000);
         return;
       }
       if (!validatePhoneNumber(toPhone)) {
-        setError('Please enter a valid phone number in international format (e.g., +1234567890)');
+        const errorMsg = 'Please enter a valid phone number in international format (e.g., +1234567890)';
+        setError(errorMsg);
+        showError('Invalid Phone Number', errorMsg, 5000);
         return;
       }
     }
@@ -116,14 +231,41 @@ const CallBridge: React.FC = () => {
         setToPhone('');
         showSuccess('Call Started!', 'Your call is being initiated...', 3000);
       } else {
-        setError(response.error || 'Failed to initiate call');
+        const errorMsg = response.error || 'Failed to initiate call';
+        setError(errorMsg);
+        showError('Call Initiation Failed', errorMsg, 6000);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initiate call');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initiate call';
+      setError(errorMessage);
+      
+      let errorTitle = 'Call Initiation Failed';
+      let errorDetails = errorMessage;
+      
+      if (err instanceof Error) {
+        const status = (err as any).status;
+        const details = (err as any).details;
+        
+        if (status === 422) {
+          errorTitle = 'Invalid Parameters';
+          errorDetails = details ? `Validation error: ${JSON.stringify(details)}` : errorMessage;
+        } else if (status === 401) {
+          errorTitle = 'Authentication Failed';
+          errorDetails = 'Please check your API credentials';
+        } else if (status === 403) {
+          errorTitle = 'Access Denied';
+          errorDetails = 'Your account does not have permission for this action';
+        } else if (status >= 500) {
+          errorTitle = 'Server Error';
+          errorDetails = 'The server encountered an error. Please try again later.';
+        }
+      }
+      
+      showError(errorTitle, errorDetails, 8000);
     } finally {
       setIsLoading(false);
     }
-  }, [callMode, fromPhone, toPhone, currentProvider, showSuccess, setError]);
+  }, [callMode, fromPhone, toPhone, currentProvider, showSuccess, setError, showError]);
 
   const handleEndCall = useCallback(async () => {
     if (!activeCallId) {
@@ -136,7 +278,27 @@ const CallBridge: React.FC = () => {
       await apiService.endCall(activeCallId);
       setActiveCallId(null);
     } catch (err) {
-      showError('Failed to End Call', err instanceof Error ? err.message : 'Failed to end call', 5000);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to end call';
+      let errorTitle = 'Failed to End Call';
+      let errorDetails = errorMessage;
+      
+      if (err instanceof Error) {
+        const status = (err as any).status;
+        const details = (err as any).details;
+        
+        if (status === 404) {
+          errorTitle = 'Call Not Found';
+          errorDetails = 'The call may have already ended or does not exist';
+        } else if (status === 422) {
+          errorTitle = 'Invalid Call State';
+          errorDetails = details ? `Cannot end call: ${JSON.stringify(details)}` : errorMessage;
+        } else if (status >= 500) {
+          errorTitle = 'Server Error';
+          errorDetails = 'Unable to end call due to server error. Please try again.';
+        }
+      }
+      
+      showError(errorTitle, errorDetails, 6000);
     } finally {
       setIsLoading(false);
     }
@@ -163,12 +325,20 @@ const CallBridge: React.FC = () => {
   return (
     <div className="call-bridge">
       <div className="dashboard-header">
-        <div className="header-content">
-          <div className="header-title">
-            <h1>VoIP Call Bridge</h1>
-            <p className="header-subtitle">Professional Call Bridging</p>
+          <div className="header-content">
+            <div className="header-title">
+              <h1>VoIP Call Bridge</h1>
+              <p className="header-subtitle">Professional Call Bridging</p>
+            </div>
+            <div className="connection-status">
+              <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+                <span className="status-dot"></span>
+                <span className="status-text">
+                  {isConnected ? 'Connected' : 'Disconnected'}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
       </div>
 
         <div className="dashboard-grid">
@@ -184,8 +354,31 @@ const CallBridge: React.FC = () => {
               <div className="controls-separator"></div>
               <div className="controls-main">
           <div className="call-form">
-            <form onSubmit={(e) => { e.preventDefault(); handleInitiateCall(); }} title="Press Ctrl+Enter to start call">
-              {callMode === 'bridge' ? (
+            <div className="call-mode-toggle">
+              <div className="toggle-container">
+                <button
+                  type="button"
+                  className={`toggle-option ${callMode === 'bridge' ? 'active' : ''}`}
+                  onClick={() => handleModeChange('bridge')}
+                >
+                  <span className="toggle-icon">Bridge</span>
+                  <span className="toggle-text">Call Bridge</span>
+                  <span className="toggle-desc">Connect two external numbers</span>
+                </button>
+                <button
+                  type="button"
+                  className={`toggle-option ${callMode === 'headset' ? 'active' : ''}`}
+                  onClick={() => handleModeChange('headset')}
+                >
+                  <span className="toggle-icon">Headset</span>
+                  <span className="toggle-text">WebRTC Headset</span>
+                  <span className="toggle-desc">Use your browser's mic & speakers</span>
+                </button>
+              </div>
+            </div>
+
+            {callMode === 'bridge' ? (
+              <form onSubmit={(e) => { e.preventDefault(); handleInitiateCall(); }} title="Press Ctrl+Enter to start call">
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="fromPhone">From Number</label>
@@ -210,69 +403,48 @@ const CallBridge: React.FC = () => {
                     />
                   </div>
                 </div>
-              ) : (
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="toPhone">Phone Number to Call</label>
-                        <input
-                          type="tel"
-                          id="toPhone"
-                          value={toPhone}
-                          onChange={(e) => setToPhone(e.target.value)}
-                          placeholder="+1234567890"
-                          required
-                        />
-                  </div>
-                </div>
-              )}
-              <div className="call-mode-toggle">
-                <div className="toggle-container">
-                  <button
-                    type="button"
-                    className={`toggle-option ${callMode === 'bridge' ? 'active' : ''}`}
-                    onClick={() => handleModeChange('bridge')}
-                  >
-                    <span className="toggle-icon">🌐</span>
-                    <span className="toggle-text">Call Bridge</span>
-                    <span className="toggle-desc">Connect two external numbers</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`toggle-option ${callMode === 'headset' ? 'active' : ''}`}
-                    onClick={() => handleModeChange('headset')}
-                  >
-                    <span className="toggle-icon">🎧</span>
-                    <span className="toggle-text">WebRTC Headset</span>
-                    <span className="toggle-desc">Use your browser's mic & speakers</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="button-group">
-                {!activeCallId ? (
-                  callMode === 'bridge' ? (
+                <div className="button-group">
+                  {!activeCallId ? (
                     <button type="submit" disabled={isLoading} className="primary-btn">
                       {isLoading ? 'Initiating...' : 'Start Call Bridge'}
                     </button>
                   ) : (
-                    <button type="submit" disabled={isLoading} className="primary-btn">
-                      {isLoading ? 'Starting...' : 'Start WebRTC Call'}
+                    <button type="button" onClick={handleEndCall} className="danger-btn" disabled={isLoading}>
+                      {isLoading ? 'Ending...' : 'End Call'}
                     </button>
-                  )
-                ) : (
-                  <button type="button" onClick={handleEndCall} className="danger-btn" disabled={isLoading}>
-                    {isLoading ? 'Ending...' : 'End Call'}
-                  </button>
-                )}
+                  )}
+                </div>
+                {error && <div className="error-message">{error}</div>}
+              </form>
+            ) : (
+              <div className="webrtc-container">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="toPhone">Phone Number to Call</label>
+                    <input
+                      type="tel"
+                      id="toPhone"
+                      value={toPhone}
+                      onChange={(e) => setToPhone(e.target.value)}
+                      placeholder="+1234567890"
+                      required
+                    />
+                  </div>
+                </div>
+                <WebRTCHeadset
+                  toPhone={toPhone}
+                  provider={currentProvider}
+                  onCallStatusChange={handleWebRTCStatusChange}
+                />
               </div>
-            </form>
-            {error && <div className="error-message">{error}</div>}
-            {webrtcError && <div className="error-message">{webrtcError}</div>}
+            )}
+            
           </div>
               </div>
             </div>
           </div>
 
+        
         {currentCall && (
           <div className="dashboard-section call-status-section">
             <div className="section-header">
@@ -280,7 +452,7 @@ const CallBridge: React.FC = () => {
               <p>Real-time call information</p>
             </div>
             <CallStatusDisplay
-              call={currentCall}
+              call={currentCall!}
               timeInCall={timeInCall}
               getStatusColor={getStatusColor}
               getStatusText={getStatusText}

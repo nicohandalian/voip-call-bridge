@@ -77,6 +77,7 @@
   display: flex;
   gap: var(--spacing-sm);
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 /* Button styles are defined in components.css */
@@ -142,6 +143,56 @@
 
 .instruction-text {
   font-size: var(--font-size-base);
+}
+
+.mic-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-glass-active);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  color: var(--text-white);
+  text-shadow: var(--shadow-text);
+}
+
+.mic-icon {
+  font-size: var(--font-size-lg);
+}
+
+.mic-text {
+  font-size: var(--font-size-sm);
+}
+
+.trial-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border: 1px solid #ffc107;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+.notice-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.notice-text {
+  color: #856404;
+}
+
+.notice-text strong {
+  color: #533f03;
+  font-weight: 600;
 }
 
 .connection-help {

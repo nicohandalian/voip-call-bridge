@@ -1,13 +1,15 @@
 export interface CallStatus {
   callId: string;
   status: 'initiating' | 'ringing' | 'answered' | 'bridged' | 'ended' | 'error';
-  fromPhone: string;
+  fromPhone?: string;
   toPhone: string;
   error?: string;
   timestamp: Date;
   callStartTime?: Date;
   callMode?: 'bridge' | 'headset';
   provider?: string;
+  demoMode?: boolean;
+  apiError?: string;
 }
 
 export interface CallBridgeConfig {

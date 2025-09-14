@@ -5,7 +5,7 @@ interface CallStatusDisplayProps {
   call: CallStatusType;
   timeInCall: string;
   getStatusColor: (status: CallStatusType['status']) => string;
-  getStatusText: (status: CallStatusType['status']) => string;
+  getStatusText: (status: CallStatusType['status'], call?: CallStatusType) => string;
   callMode?: 'bridge' | 'headset';
 }
 
@@ -25,7 +25,12 @@ const CallStatusDisplay: React.FC<CallStatusDisplayProps> = ({
             className="status-dot-minimal"
             style={{ backgroundColor: getStatusColor(call.status) }}
           />
-          <span className="status-text-minimal">{getStatusText(call.status)}</span>
+          <span className="status-text-minimal">
+            {getStatusText(call.status, call)}
+          </span>
+          {call.demoMode && (
+            <span className="demo-badge">Demo</span>
+          )}
         </div>
         {timeInCall && (
           <div className="call-timer-minimal">{timeInCall}</div>
@@ -63,8 +68,13 @@ const CallStatusDisplay: React.FC<CallStatusDisplayProps> = ({
 
       {call.error && (
         <div className="error-minimal">
-          <span className="error-icon-minimal">⚠️</span>
           <span className="error-text-minimal">{call.error}</span>
+        </div>
+      )}
+      
+      {call.demoMode && call.apiError && (
+        <div className="warning-minimal">
+          <span className="warning-text-minimal">API failed, running in demo mode</span>
         </div>
       )}
     </div>

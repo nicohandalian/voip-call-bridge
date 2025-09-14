@@ -7,6 +7,7 @@ const SOCKET_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:3001';
 export const useSocket = () => {
   const [socket, setSocket] = useState<any | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [callStatuses, setCallStatuses] = useState<CallStatus[]>([]);
 
   useEffect(() => {
@@ -14,14 +15,21 @@ export const useSocket = () => {
 
     newSocket.on('connect', () => {
       setIsConnected(true);
+      setConnectionError(null);
     });
 
-    newSocket.on('disconnect', () => {
+    newSocket.on('disconnect', (reason: string) => {
       setIsConnected(false);
+      if (reason === 'io server disconnect') {
+        setConnectionError('Server disconnected the connection');
+      } else {
+        setConnectionError('Connection lost');
+      }
     });
 
     newSocket.on('connect_error', (error: any) => {
       setIsConnected(false);
+      setConnectionError(`Connection failed: ${error.message || 'Unknown error'}`);
     });
 
     newSocket.on('callStatusUpdate', (data: CallStatus | CallStatus[]) => {
@@ -57,6 +65,7 @@ export const useSocket = () => {
   return {
     socket,
     isConnected,
+    connectionError,
     callStatuses,
     emit,
   };

@@ -24,7 +24,18 @@ export const getStatusColor = (status: CallStatus['status']): string => {
   }
 };
 
-export const getStatusText = (status: CallStatus['status']): string => {
+export const getStatusText = (status: CallStatus['status'], call?: CallStatus): string => {
+
+  if (call?.demoMode) {
+    switch (status) {
+      case 'answered':
+        return 'Demo call active';
+      default:
+        return 'Demo call active';
+    }
+  }
+
+
   switch (status) {
     case 'initiating':
       return 'Initiating call bridge...';

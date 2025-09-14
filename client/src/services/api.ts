@@ -21,15 +21,32 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+      
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error(`Server returned invalid JSON. Status: ${response.status}`);
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+        const errorMessage = data?.error || data?.message || `HTTP ${response.status}: ${response.statusText}`;
+        const errorDetails = data?.details || data?.raw?.errors || null;
+        
+        const fullError = new Error(errorMessage);
+        (fullError as any).status = response.status;
+        (fullError as any).details = errorDetails;
+        (fullError as any).originalResponse = data;
+        
+        throw fullError;
       }
 
       return data;
     } catch (error) {
-      throw error;
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Network error occurred');
     }
   }
 

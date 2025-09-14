@@ -58,6 +58,29 @@ ngrok http 3001
 ### Demo Mode
 If Telnyx credentials are not configured, the application runs in demo mode, simulating the call flow for testing purposes.
 
+## Telnyx Trial Account Limitations
+
+### WebRTC Headset Issues
+**Problem**: Telnyx trial accounts have significant limitations for WebRTC functionality:
+- **SIP Registration**: Trial accounts cannot register SIP connections, which is required for WebRTC authentication
+- **WebRTC Access**: Full WebRTC functionality requires a paid account with proper SIP connection setup
+- **Authentication Errors**: You'll see "Authentication failed" and "WebSocket closed abnormally" errors
+- **Demo Mode**: The app automatically falls back to demo mode for WebRTC calls when credentials fail
+
+**Solution**: Upgrade to a paid Telnyx account.
+
+### Bridge Calling Limitations
+**Problem**: Trial accounts have restrictions on phone number purchasing:
+- **Geographic Restrictions**: Trial accounts can only purchase numbers in your account's registered country (e.g., Uruguay)
+- **Verification Required**: Worldwide number coverage requires account verification
+- **Limited Features**: Some advanced calling features may not be available
+
+**Current Workaround**: The app uses demo mode for testing when real API calls fail, allowing you to test the UI and call flow without actual phone calls.
+
+### Recommended Setup
+1. **For Development**: Use demo mode to test UI and functionality
+2. **For Production**: Upgrade to paid Telnyx account with proper SIP connection setup
+
 ## Challenge
 Pick one of the following VoIP providers  
 -Telnyx  
