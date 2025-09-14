@@ -6,6 +6,7 @@ export class SinchProvider extends BaseProvider {
   displayName = 'Sinch';
   private apiKey: string;
   private servicePlanId: string;
+  private baseUrl = 'https://calling-api.sinch.com/v1/projects';
 
   constructor(apiKey: string, servicePlanId: string) {
     super();
@@ -26,55 +27,68 @@ export class SinchProvider extends BaseProvider {
       provider: 'sinch',
     });
 
+    if (this.apiKey === 'demo' || this.servicePlanId === 'demo') {
+      return this.simulateCall(callId, fromPhone, toPhone, callMode);
+    }
+
     try {
-      setTimeout(() => {
-        this.updateCallStatus(callId, {
-          callId,
-          status: 'ringing',
-          fromPhone,
-          toPhone,
-          timestamp: new Date(),
-          callMode,
-          provider: 'sinch',
-        });
-      }, 1000);
+      const response = await fetch(`${this.baseUrl}/${this.servicePlanId}/calls`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          method: 'pstn',
+          callId: callId,
+          from: {
+            type: 'number',
+            endpoint: fromPhone
+          },
+          to: [
+            {
+              type: 'number',
+              endpoint: toPhone
+            }
+          ],
+          instructions: [
+            {
+              name: 'say',
+              text: 'Please wait while we connect your call.',
+              locale: 'en-US'
+            },
+            {
+              name: 'play',
+              fileUri: 'silence://1000'
+            },
+            {
+              name: 'connectPstn',
+              destination: {
+                type: 'number',
+                endpoint: toPhone
+              }
+            }
+          ]
+        })
+      });
 
-      setTimeout(() => {
-        this.updateCallStatus(callId, {
-          callId,
-          status: 'answered',
-          fromPhone,
-          toPhone,
-          timestamp: new Date(),
-          callMode,
-          provider: 'sinch',
-        });
-      }, 3000);
+      if (!response.ok) {
+        throw new Error(`Sinch API error: ${response.status} ${response.statusText}`);
+      }
 
-      setTimeout(() => {
-        this.updateCallStatus(callId, {
-          callId,
-          status: 'ringing',
-          fromPhone,
-          toPhone,
-          timestamp: new Date(),
-          callMode,
-          provider: 'sinch',
-        });
-      }, 5000);
+      const callData = await response.json();
+      const sinchCallId = callData.callId || callId;
 
-      setTimeout(() => {
-        this.updateCallStatus(callId, {
-          callId,
-          status: 'bridged',
-          fromPhone,
-          toPhone,
-          timestamp: new Date(),
-          callStartTime: new Date(),
-          callMode,
-          provider: 'sinch',
-        });
-      }, 8000);
+      this.updateCallStatus(callId, {
+        callId,
+        status: 'ringing',
+        fromPhone,
+        toPhone,
+        timestamp: new Date(),
+        callMode,
+        provider: 'sinch',
+        externalCallId: sinchCallId
+      });
 
       return callId;
     } catch (error) {
@@ -86,9 +100,71 @@ export class SinchProvider extends BaseProvider {
         timestamp: new Date(),
         callMode,
         provider: 'sinch',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;
     }
+  }
+
+  private simulateCall(callId: string, fromPhone: string, toPhone: string, callMode: 'bridge' | 'headset'): string {
+    setTimeout(() => {
+      this.updateCallStatus(callId, {
+        callId,
+        status: 'ringing',
+        fromPhone,
+        toPhone,
+        timestamp: new Date(),
+        callMode,
+        provider: 'sinch',
+        demoMode: true,
+        apiError: 'Using demo mode - Sinch API not configured'
+      });
+    }, 1000);
+
+    setTimeout(() => {
+      this.updateCallStatus(callId, {
+        callId,
+        status: 'answered',
+        fromPhone,
+        toPhone,
+        timestamp: new Date(),
+        callMode,
+        provider: 'sinch',
+        demoMode: true,
+        apiError: 'Using demo mode - Sinch API not configured'
+      });
+    }, 3000);
+
+    setTimeout(() => {
+      this.updateCallStatus(callId, {
+        callId,
+        status: 'ringing',
+        fromPhone,
+        toPhone,
+        timestamp: new Date(),
+        callMode,
+        provider: 'sinch',
+        demoMode: true,
+        apiError: 'Using demo mode - Sinch API not configured'
+      });
+    }, 5000);
+
+    setTimeout(() => {
+      this.updateCallStatus(callId, {
+        callId,
+        status: 'bridged',
+        fromPhone,
+        toPhone,
+        timestamp: new Date(),
+        callStartTime: new Date(),
+        callMode,
+        provider: 'sinch',
+        demoMode: true,
+        apiError: 'Using demo mode - Sinch API not configured'
+      });
+    }, 8000);
+
+    return callId;
   }
 
   async endCall(callId: string): Promise<void> {
@@ -98,6 +174,21 @@ export class SinchProvider extends BaseProvider {
       const toPhone = currentStatus?.toPhone || 'Unknown';
       const callMode = currentStatus?.callMode || 'bridge';
       const provider = currentStatus?.provider || 'sinch';
+      const externalCallId = currentStatus?.externalCallId;
+
+      if (this.apiKey !== 'demo' && this.servicePlanId !== 'demo' && externalCallId) {
+        try {
+          await fetch(`${this.baseUrl}/${this.servicePlanId}/calls/${externalCallId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            }
+          });
+        } catch (apiError) {
+          console.error('Failed to end Sinch call via API:', apiError);
+        }
+      }
 
       this.updateCallStatus(callId, {
         callId,

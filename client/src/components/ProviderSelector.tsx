@@ -17,7 +17,7 @@ interface ProviderSelectorProps {
 const ProviderSelector: React.FC<ProviderSelectorProps> = ({ onProviderChange }) => {
   const [providers] = useState<Provider[]>([
     { type: 'telnyx', name: 'Telnyx', configured: true },
-    { type: 'sinch', name: 'Sinch', configured: false },
+    { type: 'sinch', name: 'Sinch', configured: true },
     { type: 'infobip', name: 'Infobip', configured: false }
   ]);
   const [currentProvider, setCurrentProvider] = useState<string>('telnyx');

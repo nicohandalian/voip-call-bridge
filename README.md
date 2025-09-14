@@ -81,6 +81,32 @@ If Telnyx credentials are not configured, the application runs in demo mode, sim
 1. **For Development**: Use demo mode to test UI and functionality
 2. **For Production**: Upgrade to paid Telnyx account with proper SIP connection setup
 
+## Sinch Trial Account Limitations
+
+**Sinch Voice API** also has limitations with free trial accounts:
+
+### Trial Limitations:
+- **Duration**: 14-day trial period only
+- **Phone Numbers**: Limited to test numbers only (no real phone number purchases)
+- **Call Credits**: Limited number of outbound call minutes
+- **Geographic Restrictions**: May be limited to certain countries/regions
+- **API Rate Limits**: Lower rate limits compared to paid accounts
+
+### Issues You May Encounter:
+- **Authentication Errors**: Trial accounts may have restricted API access
+- **Phone Number Validation**: May not accept real phone numbers for outbound calls
+- **Call Bridging**: Advanced features like call bridging may not work properly
+- **Webhook Delivery**: Webhook endpoints may not be fully supported
+
+### For Testing:
+- **Demo Mode**: The application automatically falls back to demo mode when Sinch credentials are not properly configured
+- **Simulated Calls**: Demo mode provides realistic call flow simulation for UI testing
+- **No Real Calls**: Demo mode doesn't make actual phone calls, perfect for development
+
+### Recommended Setup
+1. **For Development**: Use demo mode to test UI and functionality
+2. **For Production**: Upgrade to paid Sinch account for real API access
+
 ## Challenge
 Pick one of the following VoIP providers  
 -Telnyx  
