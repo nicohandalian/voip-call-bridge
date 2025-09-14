@@ -7,9 +7,9 @@ A VoIP call bridging solution with **demo mode** for testing and development. Fe
 
 - **Demo Mode**: Full simulation of call flows for testing
 - **Two-Step Call Flow**: Call first number → wait for answer → dial second number → bridge together
-- **Headset Mode**: Use browser microphone/speakers (Telnyx only)
+- **Headset Mode**: Use browser microphone/speakers
 - **Real-time Updates**: Live call status updates via Socket.IO
-- **Multi-Provider Support**: Telnyx, Sinch, and Infobip (demo mode)
+- **Multi-Provider Support**: Telnyx, Sinch, and Infobip
 - **TypeScript**: Full type safety across client and server
 - **React UI**: Modern, responsive web interface
 
@@ -78,7 +78,7 @@ npm run dev:client
 - Full call flow simulation
 - Realistic status updates
 - Two-step call process
-- WebRTC headset mode (simulated)
+- WebRTC headset mode
 - Real-time UI updates
 - All providers work identically
 
@@ -108,7 +108,7 @@ npm run dev:client
 2. **REST API** - Complete Node.js API with all endpoints
 3. **React UI** - Phone number fields, dial button, real-time updates
 4. **Real-time Updates** - Live status updates via Socket.IO
-5. **Headset Mode** - WebRTC integration (simulated in demo)
+5. **Headset Mode** - WebRTC integration
 
 ### **Demo Mode Benefits:**
 - **Perfect for Testing**: No need for real phone numbers or API keys
