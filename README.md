@@ -3,7 +3,7 @@
 ## Description
 A VoIP call bridging solution with **demo mode** for testing and development. Features TypeScript client libraries, Node.js REST API, and React web interface with real-time call management and WebRTC headset support.
 
-## 🚀 Features
+## Features
 
 - **Demo Mode**: Full simulation of call flows for testing
 - **Two-Step Call Flow**: Call first number → wait for answer → dial second number → bridge together
@@ -72,7 +72,7 @@ npm run dev:client
 - **API Health Check**: http://localhost:3001/health
 - **API Base**: http://localhost:3001/api
 
-## 📊 Provider Status
+## Provider Status
 
 **Demo Mode Features:**
 - ✅ Full call flow simulation
@@ -82,14 +82,14 @@ npm run dev:client
 - ✅ Real-time UI updates
 - ✅ All providers work identically
 
-### 🔧 **How Demo Mode Works**
+### **How Demo Mode Works**
 1. **Realistic Simulation**: Mimics actual call behavior
 2. **Status Updates**: Shows initiating → ringing → answered → bridging → bridged
 3. **Timing**: Uses realistic delays (1-4 seconds between states)
 4. **Error Handling**: Simulates API failures and recovery
 5. **WebRTC**: Simulates headset connection without actual audio
 
-## 🚧 Challenges Faced
+## Challenges Faced
 
 ### 1. **Regional Limitations**
 - **Telnyx**: Trial only works with Uruguay numbers
@@ -122,3 +122,20 @@ npm run dev:client
 - Test with actual phone numbers
 
 The application successfully demonstrates all required functionality! 🎉
+
+
+## DEMO
+
+
+https://github.com/user-attachments/assets/8c8bf389-6537-491e-8f43-aba3fa11becf
+
+
+### Responsive screenshots
+
+
+<img width="200" height="430" alt="Screenshot 2025-09-14 at 1 32 08 AM" src="https://github.com/user-attachments/assets/1d8bc2f8-ebdc-4b0a-9eed-c529e9dfd9f5" />
+
+
+<img width="200" height="430" alt="Screenshot 2025-09-14 at 1 32 57 AM" src="https://github.com/user-attachments/assets/3a95ad61-9a3d-4505-a086-6f6a1cbc9814" />
+
+
