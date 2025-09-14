@@ -3,6 +3,21 @@
 @import '../styles/base.css';
 @import '../styles/components.css';
 
+.provider-not-supported {
+  background: rgba(255, 193, 7, 0.1);
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  text-align: center;
+  color: #856404;
+}
+
+.provider-not-supported p {
+  margin: 8px 0;
+  font-weight: 500;
+}
+
 /* Main Container */
 .call-bridge {
   min-height: 100vh;

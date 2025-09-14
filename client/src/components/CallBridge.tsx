@@ -8,6 +8,7 @@ import { CallStatus } from '../types';
 import ProviderSelector from './ProviderSelector';
 import CallStatusDisplay from './CallStatus';
 import WebRTCHeadset from './WebRTCHeadset';
+import SinchHeadset from './SinchHeadset';
 import ToastContainer from './ToastContainer';
 import './CallBridge.css';
 
@@ -431,11 +432,23 @@ const CallBridge: React.FC = () => {
                     />
                   </div>
                 </div>
-                <WebRTCHeadset
-                  toPhone={toPhone}
-                  provider={currentProvider}
-                  onCallStatusChange={handleWebRTCStatusChange}
-                />
+                {currentProvider === 'telnyx' ? (
+                  <WebRTCHeadset
+                    toPhone={toPhone}
+                    provider={currentProvider}
+                    onCallStatusChange={handleWebRTCStatusChange}
+                  />
+                ) : currentProvider === 'sinch' ? (
+                  <SinchHeadset
+                    toPhone={toPhone}
+                    onCallStatusChange={handleWebRTCStatusChange}
+                  />
+                ) : (
+                  <div className="provider-not-supported">
+                    <p>WebRTC headset not available for {currentProvider}</p>
+                    <p>Use bridge calling mode instead</p>
+                  </div>
+                )}
               </div>
             )}
             
