@@ -31,6 +31,24 @@ export class InfobipProvider extends BaseProvider {
     }
 
     try {
+      if (callMode === 'headset') {
+        console.log('Infobip headset call initiated');
+        
+        this.updateCallStatus(callId, {
+          callId,
+          status: 'answered',
+          fromPhone: 'Infobip Headset',
+          toPhone,
+          timestamp: new Date(),
+          callStartTime: new Date(),
+          callMode,
+          provider: 'infobip',
+          demoMode: false
+        });
+
+        return callId;
+      }
+
       const response = await fetch(`${this.baseUrl}/tts/3/multi`, {
         method: 'POST',
         headers: {
@@ -173,15 +191,15 @@ export class InfobipProvider extends BaseProvider {
       setTimeout(() => {
         this.updateCallStatus(callId, {
           callId,
-          status: 'bridged',
-          fromPhone,
+          status: 'answered',
+          fromPhone: 'Infobip Headset',
           toPhone,
           timestamp: new Date(),
           callStartTime: new Date(),
           callMode,
           provider: 'infobip',
           demoMode: true,
-          apiError: `Headset call connected to ${fromPhone}`
+          apiError: `Headset call connected to ${toPhone}`
         });
       }, 6000);
     }
@@ -198,7 +216,9 @@ export class InfobipProvider extends BaseProvider {
       const provider = currentStatus?.provider || 'infobip';
       const externalCallId = currentStatus?.externalCallId;
 
-      if (this.apiKey !== 'demo' && this.baseUrl !== 'demo' && externalCallId) {
+      if (callMode === 'headset') {
+        console.log('Infobip headset call ended');
+      } else if (this.apiKey !== 'demo' && this.baseUrl !== 'demo' && externalCallId) {
         try {
           await fetch(`${this.baseUrl}/tts/3/stop/${externalCallId}`, {
             method: 'POST',

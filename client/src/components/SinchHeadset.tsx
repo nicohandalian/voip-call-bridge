@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { CallStatus } from '../types/shared';
-import './WebRTCHeadset.css';
+import './Headset.css';
 
 interface SinchHeadsetProps {
   toPhone: string;

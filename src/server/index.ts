@@ -21,7 +21,14 @@ const io = new SocketIOServer(server, {
 
 const PORT = 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://yourdomain.com'] 
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 app.use('/api/calls', createCallRoutes(io));
@@ -34,6 +41,14 @@ app.get('/health', (req, res) => {
 
 app.get('/webhooks/telnyx', (req, res) => {
   res.status(200).json({ status: 'Webhook endpoint ready' });
+});
+
+app.get('/webhooks/sinch', (req, res) => {
+  res.status(200).json({ status: 'Sinch webhook endpoint ready' });
+});
+
+app.get('/webhooks/infobip', (req, res) => {
+  res.status(200).json({ status: 'Infobip webhook endpoint ready' });
 });
 
 app.post('/webhooks/telnyx', (req, res) => {
@@ -151,7 +166,96 @@ app.post('/webhooks/telnyx', (req, res) => {
   }
 });
 
+app.post('/webhooks/sinch', (req, res) => {
+  try {
+    const event = req.body;
+    logger.debug('Received Sinch webhook event:', JSON.stringify(event, null, 2));
+    
+    const callId = event.callId || event.call_id;
+    if (!callId) {
+      logger.warn('Sinch webhook missing callId');
+      return res.status(400).json({ error: 'Missing callId' });
+    }
+    
+    const statusMap: { [key: string]: string } = {
+      'call.answered': 'answered',
+      'call.established': 'answered',
+      'call.hangup': 'ended',
+      'call.failed': 'error',
+      'call.ringing': 'ringing'
+    };
+    
+    const status = statusMap[event.event] || 'unknown';
+    
+    if (status !== 'unknown') {
+      const callStatus: any = {
+        callId,
+        status,
+        toPhone: event.to || event.to_number,
+        timestamp: new Date(),
+        callMode: event.callMode || 'bridge',
+        provider: 'sinch',
+        demoMode: false
+      };
+      
+      if (event.from || event.from_number) {
+        callStatus.fromPhone = event.from || event.from_number;
+      }
+      
+      io.emit('callStatusUpdate', callStatus);
+    }
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    logger.error('Sinch webhook error:', error);
+    res.status(500).json({ error: 'Webhook processing failed' });
+  }
+});
 
+app.post('/webhooks/infobip', (req, res) => {
+  try {
+    const event = req.body;
+    logger.debug('Received Infobip webhook event:', JSON.stringify(event, null, 2));
+    
+    const callId = event.callId || event.messageId;
+    if (!callId) {
+      logger.warn('Infobip webhook missing callId');
+      return res.status(400).json({ error: 'Missing callId' });
+    }
+    
+    const statusMap: { [key: string]: string } = {
+      'delivered': 'answered',
+      'delivery_failed': 'error',
+      'expired': 'ended',
+      'rejected': 'error'
+    };
+    
+    const status = statusMap[event.status] || 'unknown';
+    
+    if (status !== 'unknown') {
+      const callStatus: any = {
+        callId,
+        status,
+        toPhone: event.to || event.destination,
+        timestamp: new Date(),
+        callMode: event.callMode || 'bridge',
+        provider: 'infobip',
+        demoMode: false
+      };
+      
+      if (event.from || event.sender) {
+        callStatus.fromPhone = event.from || event.sender;
+      }
+      
+      io.emit('callStatusUpdate', callStatus);
+    }
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    logger.error('Infobip webhook error:', error);
+    res.status(500).json({ error: 'Webhook processing failed' });
+  }
+});
 
 
 

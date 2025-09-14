@@ -4,11 +4,8 @@ import { useSocket } from '../hooks/useSocket';
 import { useCallTimer } from '../hooks/useCallTimer';
 import { useToast } from '../hooks/useToast';
 import { validatePhoneNumber, getStatusColor, getStatusText } from '../utils/callUtils';
-import { CallStatus } from '../types';
 import ProviderSelector from './ProviderSelector';
 import CallStatusDisplay from './CallStatus';
-import WebRTCHeadset from './WebRTCHeadset';
-import SinchHeadset from './SinchHeadset';
 import ToastContainer from './ToastContainer';
 import './CallBridge.css';
 
@@ -29,14 +26,12 @@ const CallBridge: React.FC = () => {
     }
   };
   const [currentProvider, setCurrentProvider] = useState<string>('telnyx');
-  const [webrtcCalls, setWebrtcCalls] = useState<CallStatus[]>([]);
-  const [demoCall, setDemoCall] = useState<CallStatus | null>(null);
   
   const { callStatuses, isConnected, connectionError } = useSocket();
   const { toasts, removeToast, showSuccess, showError, showInfo } = useToast();
 
 
-  const allCallStatuses = [...callStatuses, ...webrtcCalls, ...(demoCall ? [demoCall] : [])];
+  const allCallStatuses = [...callStatuses];
   const currentCall = activeCallId ? allCallStatuses.find(call => call.callId === activeCallId) : 
     (allCallStatuses.length > 0 ? allCallStatuses[0] : null);
   
@@ -44,73 +39,7 @@ const CallBridge: React.FC = () => {
   const timeInCall = useCallTimer(currentCall || null);
 
 
-  useEffect(() => {
-    if (webrtcCalls.length > 0 && !activeCallId) {
-      const latestCall = webrtcCalls[webrtcCalls.length - 1];
-      setActiveCallId(latestCall.callId);
-    }
-  }, [webrtcCalls, activeCallId]);
 
-  const handleWebRTCStatusChange = useCallback((status: string, call?: any) => {
-    
-
-    const customCall = call as any;
-    
-
-    if (status === 'demo') {
-      const callId = customCall?.callId || 'demo-call-' + Date.now();
-
-
-      const demoCallStatus: CallStatus = {
-        callId: callId,
-        status: 'answered', // Demo calls are treated as answered
-        fromPhone: customCall?.fromPhone || 'WebRTC Headset',
-        toPhone: customCall?.toPhone || toPhone,
-        provider: customCall?.provider || currentProvider,
-        demoMode: true,
-        apiError: 'Using demo mode for WebRTC testing',
-        timestamp: new Date(),
-        callStartTime: new Date()
-      };
-
-      setDemoCall(demoCallStatus);
-      setActiveCallId(callId);
-      
-    } else if (status === 'active' && !customCall?.demoMode) {
-
-      const callId = customCall?.callId || 'webrtc-call-' + Date.now();
-      
-      const webrtcCallStatus: CallStatus = {
-        callId: callId,
-        status: 'answered',
-        fromPhone: customCall?.fromPhone || 'WebRTC Headset',
-        toPhone: customCall?.toPhone || toPhone,
-        provider: customCall?.provider || currentProvider,
-        demoMode: false,
-        timestamp: new Date(),
-        callStartTime: new Date()
-      };
-      
-      
-      setWebrtcCalls(prev => {
-        const existingIndex = prev.findIndex(c => c.callId === callId);
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = webrtcCallStatus;
-          return updated;
-        } else {
-          return [...prev, webrtcCallStatus];
-        }
-      });
-      
-      setActiveCallId(callId);
-      
-    } else if (status === 'ended') {
-      setDemoCall(null);
-      setActiveCallId(null);
-    }
-
-  }, [toPhone, currentProvider]);
 
   const handleProviderChange = (provider: string, configured: boolean) => {
     setCurrentProvider(provider);
@@ -418,7 +347,7 @@ const CallBridge: React.FC = () => {
                 {error && <div className="error-message">{error}</div>}
               </form>
             ) : (
-              <div className="webrtc-container">
+              <form onSubmit={(e) => { e.preventDefault(); handleInitiateCall(); }} title="Press Ctrl+Enter to start call">
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="toPhone">Phone Number to Call</label>
@@ -432,24 +361,19 @@ const CallBridge: React.FC = () => {
                     />
                   </div>
                 </div>
-                {currentProvider === 'telnyx' ? (
-                  <WebRTCHeadset
-                    toPhone={toPhone}
-                    provider={currentProvider}
-                    onCallStatusChange={handleWebRTCStatusChange}
-                  />
-                ) : currentProvider === 'sinch' ? (
-                  <SinchHeadset
-                    toPhone={toPhone}
-                    onCallStatusChange={handleWebRTCStatusChange}
-                  />
-                ) : (
-                  <div className="provider-not-supported">
-                    <p>WebRTC headset not available for {currentProvider}</p>
-                    <p>Use bridge calling mode instead</p>
-                  </div>
-                )}
-              </div>
+                <div className="button-group">
+                  {!activeCallId ? (
+                    <button type="submit" disabled={isLoading} className="primary-btn">
+                      {isLoading ? 'Initiating...' : 'Start Call'}
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleEndCall} className="danger-btn" disabled={isLoading}>
+                      {isLoading ? 'Ending...' : 'End Call'}
+                    </button>
+                  )}
+                </div>
+                {error && <div className="error-message">{error}</div>}
+              </form>
             )}
             
           </div>

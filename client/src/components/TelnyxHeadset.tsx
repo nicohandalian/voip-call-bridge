@@ -2,17 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { TelnyxRTC } from '@telnyx/webrtc';
 import { Call } from '@telnyx/webrtc';
 import { appConfig } from '../config/appConfig';
-import './WebRTCHeadset.css';
+import './Headset.css';
 
-interface WebRTCHeadsetProps {
+interface TelnyxHeadsetProps {
   toPhone: string;
-  provider: string;
   onCallStatusChange: (status: string, call?: Call) => void;
 }
 
-const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
+const TelnyxHeadset: React.FC<TelnyxHeadsetProps> = ({
   toPhone,
-  provider,
   onCallStatusChange,
 }) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -41,19 +39,19 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       return;
     }
 
-    if (isDemoModeRef.current || callStatus === 'demo' || demoCallIdRef.current) {
+    if (isDemoModeRef.current || demoCallIdRef.current) {
+      return;
+    }
+
+    if (!appConfig.features.enableWebRTC) {
+      console.warn('WebRTC is disabled in app config');
+      setCallStatus('disabled');
+      onCallStatusChange('disabled');
       return;
     }
 
     const initializeClient = async () => {
-    try {
-      
-      if (!appConfig.features.enableWebRTC) {
-        console.warn('WebRTC is disabled in app config');
-        setCallStatus('disabled');
-        onCallStatusChange('disabled');
-        return;
-      }
+      try {
       
       const username = process.env.REACT_APP_TELNYX_WEBRTC_USERNAME || '';
       const password = (process.env.REACT_APP_TELNYX_WEBRTC_PASSWORD || '').trim();
@@ -185,7 +183,7 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       
 
       const connectionTimeout = setTimeout(() => {
-        if (!isConnected && !isDemoModeRef.current && !demoCallIdRef.current) {
+        if (!isDemoModeRef.current && !demoCallIdRef.current) {
           console.error('WebRTC connection timeout after 15 seconds');
           setCallStatus('error');
           onCallStatusChange('error');
@@ -224,7 +222,7 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
         clientRef.current.disconnect();
       }
     };
-  }, [onCallStatusChange, isConnected, callStatus, shouldBeInDemoMode]);
+  }, [shouldBeInDemoMode, onCallStatusChange]);
 
   const validatePhoneNumber = (phone: string): boolean => {
     const phoneRegex = /^\+?[1-9]\d{1,14}$/;
@@ -293,9 +291,9 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       const demoCall = {
         callId: demoCallId,
         status: 'demo',
-        fromPhone: 'WebRTC Headset',
+        fromPhone: 'Telnyx Headset',
         toPhone: toPhone,
-        provider: provider,
+        provider: 'telnyx',
         demoMode: true
       };
       onCallStatusChange('demo', demoCall as any);
@@ -417,9 +415,9 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
               const activeCall = {
                 callId: 'webrtc-call-' + Date.now(),
                 status: 'active',
-                fromPhone: 'WebRTC Headset',
+                fromPhone: 'Telnyx Headset',
                 toPhone: toPhone,
-                provider: provider,
+                provider: 'telnyx',
                 demoMode: false
               };
               onCallStatusChange('active', activeCall as any);
@@ -486,9 +484,9 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
       const endedCall = {
         callId: demoCallIdRef.current,
         status: 'ended',
-        fromPhone: 'WebRTC Headset',
+        fromPhone: 'Telnyx Headset',
         toPhone: toPhone,
-        provider: provider,
+        provider: 'telnyx',
         demoMode: true
       };
       onCallStatusChange('ended', endedCall as any);
@@ -539,4 +537,4 @@ const WebRTCHeadset: React.FC<WebRTCHeadsetProps> = ({
   );
 };
 
-export default WebRTCHeadset;
+export default TelnyxHeadset;

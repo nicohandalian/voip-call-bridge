@@ -1,5 +1,5 @@
 import React from 'react';
-import Toast, { ToastProps } from './Toast';
+import Toast from './Toast';
 
 export interface ToastData {
   id: string;
