@@ -1,6 +1,6 @@
 export interface CallStatus {
   callId: string;
-  status: 'initiating' | 'ringing' | 'answered' | 'bridged' | 'ended' | 'error';
+  status: 'initiating' | 'ringing' | 'answered' | 'bridging' | 'bridged' | 'ended' | 'error';
   fromPhone?: string;
   toPhone: string;
   error?: string;
@@ -11,6 +11,7 @@ export interface CallStatus {
   demoMode?: boolean;
   apiError?: string;
   externalCallId?: string;
+  secondCallId?: string;
 }
 
 export interface CallBridgeConfig {

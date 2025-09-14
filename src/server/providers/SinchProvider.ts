@@ -48,7 +48,7 @@ export class SinchProvider extends BaseProvider {
           to: [
             {
               type: 'number',
-              endpoint: toPhone
+              endpoint: fromPhone
             }
           ],
           instructions: [
@@ -68,7 +68,8 @@ export class SinchProvider extends BaseProvider {
                 endpoint: toPhone
               }
             }
-          ]
+          ],
+          webhookUrl: `${process.env.SERVER_URL || 'http://localhost:3001'}/webhooks/sinch`
         })
       });
 
@@ -87,8 +88,11 @@ export class SinchProvider extends BaseProvider {
         timestamp: new Date(),
         callMode,
         provider: 'sinch',
-        externalCallId: sinchCallId
+        externalCallId: sinchCallId,
+        demoMode: false
       });
+
+      console.log('Sinch API call succeeded');
 
       return callId;
     } catch (error) {
@@ -117,7 +121,7 @@ export class SinchProvider extends BaseProvider {
         callMode,
         provider: 'sinch',
         demoMode: true,
-        apiError: 'Using demo mode - Sinch API not configured'
+        apiError: `Calling ${fromPhone}...`
       });
     }, 1000);
 
@@ -131,38 +135,55 @@ export class SinchProvider extends BaseProvider {
         callMode,
         provider: 'sinch',
         demoMode: true,
-        apiError: 'Using demo mode - Sinch API not configured'
+        apiError: `${fromPhone} answered`
       });
     }, 3000);
 
-    setTimeout(() => {
-      this.updateCallStatus(callId, {
-        callId,
-        status: 'ringing',
-        fromPhone,
-        toPhone,
-        timestamp: new Date(),
-        callMode,
-        provider: 'sinch',
-        demoMode: true,
-        apiError: 'Using demo mode - Sinch API not configured'
-      });
-    }, 5000);
+    if (callMode === 'bridge') {
+      setTimeout(() => {
+        this.updateCallStatus(callId, {
+          callId,
+          status: 'bridging',
+          fromPhone,
+          toPhone,
+          timestamp: new Date(),
+          callMode,
+          provider: 'sinch',
+          demoMode: true,
+          apiError: `Now calling ${toPhone}...`
+        });
+      }, 5000);
 
-    setTimeout(() => {
-      this.updateCallStatus(callId, {
-        callId,
-        status: 'bridged',
-        fromPhone,
-        toPhone,
-        timestamp: new Date(),
-        callStartTime: new Date(),
-        callMode,
-        provider: 'sinch',
-        demoMode: true,
-        apiError: 'Using demo mode - Sinch API not configured'
-      });
-    }, 8000);
+      setTimeout(() => {
+        this.updateCallStatus(callId, {
+          callId,
+          status: 'bridged',
+          fromPhone,
+          toPhone,
+          timestamp: new Date(),
+          callStartTime: new Date(),
+          callMode,
+          provider: 'sinch',
+          demoMode: true,
+          apiError: `Call connected: ${fromPhone} ↔ ${toPhone}`
+        });
+      }, 8000);
+    } else {
+      setTimeout(() => {
+        this.updateCallStatus(callId, {
+          callId,
+          status: 'bridged',
+          fromPhone,
+          toPhone,
+          timestamp: new Date(),
+          callStartTime: new Date(),
+          callMode,
+          provider: 'sinch',
+          demoMode: true,
+          apiError: `Headset call connected to ${fromPhone}`
+        });
+      }, 5000);
+    }
 
     return callId;
   }

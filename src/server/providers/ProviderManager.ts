@@ -1,5 +1,6 @@
 import { VoiceProvider } from './BaseProvider';
 import { ProviderFactory, ProviderType } from './ProviderFactory';
+import { CallStatus } from '../../shared/types';
 
 export class ProviderManager {
   private currentProvider: VoiceProvider;
@@ -50,7 +51,7 @@ export class ProviderManager {
     this.currentProvider.clearAllCallStatuses();
   }
 
-  setStatusCallback(callback: (status: any) => void): void {
+  setStatusCallback(callback: (status: CallStatus) => void): void {
     this.currentProvider.setStatusCallback(callback);
   }
 

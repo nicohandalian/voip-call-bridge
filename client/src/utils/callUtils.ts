@@ -13,6 +13,8 @@ export const getStatusColor = (status: CallStatus['status']): string => {
       return '#ff6b6b';
     case 'answered':
       return '#4ecdc4';
+    case 'bridging':
+      return '#9b59b6';
     case 'bridged':
       return '#45b7d1';
     case 'ended':
@@ -27,11 +29,27 @@ export const getStatusColor = (status: CallStatus['status']): string => {
 export const getStatusText = (status: CallStatus['status'], call?: CallStatus): string => {
 
   if (call?.demoMode) {
+    if (call.apiError && call.apiError !== 'Using demo mode - Infobip API simulation') {
+      return call.apiError;
+    }
+    
     switch (status) {
+      case 'initiating':
+        return 'Starting demo call...';
+      case 'ringing':
+        return `Calling ${call.toPhone}...`;
       case 'answered':
-        return 'Demo call active';
+        return `${call.toPhone} answered`;
+      case 'bridging':
+        return `Connecting ${call.fromPhone} to ${call.toPhone}...`;
+      case 'bridged':
+        return `Call connected: ${call.fromPhone} ↔ ${call.toPhone}`;
+      case 'ended':
+        return 'Demo call ended';
+      case 'error':
+        return 'Demo call error';
       default:
-        return 'Demo call active';
+        return 'Demo call in progress...';
     }
   }
 

@@ -37,21 +37,20 @@ export class TelnyxProvider extends BaseProvider {
 
     try {
       if (this.apiKey === 'demo' || this.connectionId === 'demo') {
-        console.log('Using demo mode - credentials set to demo');
+        console.log('Using demo mode');
         return this.simulateCall(callId, fromPhone, toPhone, callMode);
       }
       
       if (callMode === 'bridge' && fromPhone && toPhone) {
         await this.initiateCallBridge(callId, fromPhone, toPhone);
+      console.log('Telnyx API call succeeded');
       } else if (callMode === 'headset') {
-
-
-        console.log('Headset call initiated - using WebRTC in browser');
+        console.log('Headset call initiated');
         
         const currentStatus = this.callStatuses.get(callId);
         if (currentStatus) {
           currentStatus.status = 'initiating';
-          currentStatus.demoMode = false; // This is a real WebRTC call
+          currentStatus.demoMode = false;
           this.callStatuses.set(callId, currentStatus);
           this.updateCallStatus(callId, currentStatus);
         }
@@ -63,9 +62,9 @@ export class TelnyxProvider extends BaseProvider {
 
       return callId;
     } catch (error) {
-      console.warn('API call failed, falling back to demo mode:', error);
-      
       const errorMessage = error instanceof Error ? error.message : 'Unknown API error';
+      
+      console.error('Telnyx API call failed:', errorMessage);
       
       const errorStatus: any = {
         callId,
@@ -142,69 +141,152 @@ export class TelnyxProvider extends BaseProvider {
     }
   }
 
+  async initiateSecondCall(callId: string, toPhone: string): Promise<void> {
+    try {
+      const secondCallResponse = await this.telnyx.calls.create({
+        connection_id: this.connectionId,
+        to: toPhone,
+        from: '+15551234567',
+        webhook_url: `${process.env.SERVER_URL || 'http://localhost:3001'}/webhooks/telnyx`,
+        client_state: JSON.stringify({ 
+          callId, 
+          bridgeMode: true, 
+          callStep: 'second'
+        }),
+        timeout_secs: 30,
+        time_limit_secs: 600,
+        answering_machine_detection: 'premium'
+      } as any);
+
+      const secondCallId = secondCallResponse.data?.call_control_id;
+      
+      const currentStatus = this.callStatuses.get(callId);
+      if (currentStatus && secondCallId) {
+        currentStatus.secondCallId = secondCallId;
+        this.callStatuses.set(callId, currentStatus);
+      }
+
+    } catch (error) {
+      console.error('Telnyx second call failed:', error);
+      throw new Error(`Failed to initiate second call: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async bridgeCalls(callId: string): Promise<void> {
+    try {
+      const currentStatus = this.callStatuses.get(callId);
+      if (!currentStatus || !currentStatus.callId || !currentStatus.secondCallId) {
+        throw new Error('Missing call IDs for bridging');
+      }
+
+      await this.telnyx.calls.bridge(currentStatus.callId, {
+        call_control_id: currentStatus.secondCallId,
+        play_ringtone: false,
+        ringtone: 'us',
+        record_channels: 'dual',
+        record_format: 'mp3',
+        record_track: 'both',
+        record_max_length: 300,
+        record_timeout_secs: 30,
+        mute_dtmf: 'none'
+      });
+
+      console.log('Calls bridged successfully');
+
+    } catch (error) {
+      console.error('Telnyx bridge failed:', error);
+      throw new Error(`Failed to bridge calls: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
 
 
   private simulateCall(callId: string, fromPhone: string, toPhone: string, callMode: 'bridge' | 'headset'): string {
+    this.updateCallStatus(callId, {
+      callId,
+      status: 'initiating',
+      fromPhone,
+      toPhone,
+      timestamp: new Date(),
+      callMode,
+      provider: 'telnyx',
+      demoMode: true,
+      apiError: 'Using demo mode'
+    });
+
     setTimeout(() => {
-      const currentStatus = this.callStatuses.get(callId);
-      const status: any = {
+      this.updateCallStatus(callId, {
         callId,
         status: 'ringing',
+        fromPhone,
         toPhone,
         timestamp: new Date(),
         callMode,
         provider: 'telnyx',
-        demoMode: currentStatus?.demoMode || false,
-        apiError: currentStatus?.apiError
-      };
-      
-      if (callMode === 'bridge' && fromPhone) {
-        status.fromPhone = fromPhone;
-      }
-      
-      this.updateCallStatus(callId, status);
-    }, 1000);
+        demoMode: true,
+        apiError: `Calling ${fromPhone}...`
+      });
+    }, 1500);
 
     setTimeout(() => {
-      const currentStatus = this.callStatuses.get(callId);
-      const status: any = {
+      this.updateCallStatus(callId, {
         callId,
         status: 'answered',
+        fromPhone,
         toPhone,
         timestamp: new Date(),
         callMode,
         provider: 'telnyx',
-        demoMode: currentStatus?.demoMode || false,
-        apiError: currentStatus?.apiError
-      };
-      
-      if (callMode === 'bridge' && fromPhone) {
-        status.fromPhone = fromPhone;
-      }
-      
-      this.updateCallStatus(callId, status);
-    }, 3000);
+        demoMode: true,
+        apiError: `${fromPhone} answered`
+      });
+    }, 4000);
 
-    setTimeout(() => {
-      const currentStatus = this.callStatuses.get(callId);
-      const status: any = {
-        callId,
-        status: 'bridged',
-        toPhone,
-        timestamp: new Date(),
-        callStartTime: new Date(),
-        callMode,
-        provider: 'telnyx',
-        demoMode: currentStatus?.demoMode || false,
-        apiError: currentStatus?.apiError
-      };
-      
-      if (callMode === 'bridge' && fromPhone) {
-        status.fromPhone = fromPhone;
-      }
-      
-      this.updateCallStatus(callId, status);
-    }, 5000);
+    if (callMode === 'bridge') {
+      setTimeout(() => {
+        this.updateCallStatus(callId, {
+          callId,
+          status: 'bridging',
+          fromPhone,
+          toPhone,
+          timestamp: new Date(),
+          callMode,
+          provider: 'telnyx',
+          demoMode: true,
+          apiError: `Now calling ${toPhone}...`
+        });
+      }, 6000);
+
+      setTimeout(() => {
+        this.updateCallStatus(callId, {
+          callId,
+          status: 'bridged',
+          fromPhone,
+          toPhone,
+          timestamp: new Date(),
+          callStartTime: new Date(),
+          callMode,
+          provider: 'telnyx',
+          demoMode: true,
+          apiError: `Call connected: ${fromPhone} ↔ ${toPhone}`
+        });
+      }, 8000);
+    } else {
+      setTimeout(() => {
+        this.updateCallStatus(callId, {
+          callId,
+          status: 'bridged',
+          fromPhone,
+          toPhone,
+          timestamp: new Date(),
+          callStartTime: new Date(),
+          callMode,
+          provider: 'telnyx',
+          demoMode: true,
+          apiError: `Headset call connected to ${fromPhone}`
+        });
+      }, 6000);
+    }
 
     return callId;
   }
@@ -225,7 +307,7 @@ export class TelnyxProvider extends BaseProvider {
           console.warn('Failed to hangup call via Telnyx API, continuing with local end:', apiError);
         }
       } else if (callMode === 'headset') {
-        console.log('Headset call ended - WebRTC handles this in the browser');
+        console.log('Headset call ended');
       }
 
       const endStatus: any = {

@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { ProviderFactory } from './providers/ProviderFactory';
-import { CallStatus } from '../shared/types';
 import { logger } from '../shared/logger';
 import createCallRoutes from './routes/callRoutes';
 
@@ -20,7 +19,7 @@ const io = new SocketIOServer(server, {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -28,7 +27,6 @@ app.use(express.json());
 app.use('/api/calls', createCallRoutes(io));
 
 
-const activeCalls = new Map<string, CallStatus>();
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
@@ -189,4 +187,6 @@ process.on('SIGTERM', () => {
 });
 
 server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Socket.IO server ready`);
 });

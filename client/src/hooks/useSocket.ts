@@ -11,14 +11,21 @@ export const useSocket = () => {
   const [callStatuses, setCallStatuses] = useState<CallStatus[]>([]);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_URL);
+    console.log('Attempting to connect to:', SOCKET_URL);
+    const newSocket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true
+    });
 
     newSocket.on('connect', () => {
+      console.log('Socket connected successfully');
       setIsConnected(true);
       setConnectionError(null);
     });
 
     newSocket.on('disconnect', (reason: string) => {
+      console.log('Socket disconnected:', reason);
       setIsConnected(false);
       if (reason === 'io server disconnect') {
         setConnectionError('Server disconnected the connection');
@@ -28,6 +35,7 @@ export const useSocket = () => {
     });
 
     newSocket.on('connect_error', (error: any) => {
+      console.error('Socket connection error:', error);
       setIsConnected(false);
       setConnectionError(`Connection failed: ${error.message || 'Unknown error'}`);
     });
