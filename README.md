@@ -92,9 +92,9 @@ npm run dev:client
 ## Challenges Faced
 
 ### 1. **Regional Limitations**
-- **Telnyx**: Trial only works with Uruguay numbers
-- **Sinch**: Not available in your country
-- **Solution**: Implemented comprehensive demo mode
+- **Telnyx**: Trial account supports only Uruguay numbers, but none are available
+- **Sinch**: Service not available in my country
+- **Solution**: Implemented a comprehensive demo mode
 
 ### 2. **Provider API Differences**
 - Each provider has different APIs and capabilities
